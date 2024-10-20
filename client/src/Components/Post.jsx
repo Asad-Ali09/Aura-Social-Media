@@ -1,34 +1,34 @@
-import React, { useEffect, useState } from "react";
+import {
+  ChatBubbleOutline,
+  ContentCopy,
+  MoreVert,
+  Share,
+} from "@mui/icons-material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import SendIcon from "@mui/icons-material/Send";
 import {
   Avatar,
   Box,
   Button,
   ButtonGroup,
-  Card,
-  CardContent,
   CardHeader,
   Dialog,
   DialogContent,
   DialogContentText,
-  Icon,
   IconButton,
   Stack,
   TextField,
   Typography,
   styled,
+  Menu,
+  MenuItem,
 } from "@mui/material";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import { toast } from "react-hot-toast";
-import {
-  ChatBubbleOutline,
-  ContentCopy,
-  FavoriteBorder,
-  Share,
-} from "@mui/icons-material";
-import SendIcon from "@mui/icons-material/Send";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import axios from "axios";
 import moment from "moment";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/auth/authSlice";
 
@@ -50,24 +50,34 @@ const CommentButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   marginBlock: 3,
 }));
 
-const PostBox = styled(Box)(({ theme }) => ({
+const PostBox = styled(Box)({
   padding: 1,
   borderRadius: "10px",
   boxShadow: "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;",
-}));
+});
 
 const userURL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/users`;
 const postURL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts`;
 
-const Post = ({ id, author, likes, comments, photos, content, time }) => {
+const Post = ({
+  id,
+  author,
+  likes,
+  comments,
+  photos,
+  content,
+  time,
+  handleDeletePost,
+}) => {
   const [isLiked, setLiked] = useState(false);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [totalLikes, setTotalLikes] = useState(likes.length);
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState(null);
 
   const [displayComments, setDisplayComments] = useState(comments);
-  const [totalComments, setTotalComments] = useState(comments.length);
+  const totalComments = comments.length;
 
   const [user, setUser] = useState({});
 
@@ -106,6 +116,14 @@ const Post = ({ id, author, likes, comments, photos, content, time }) => {
   };
   const handleShareDialogClose = () => {
     setIsShareDialogOpen(false);
+  };
+
+  const handleMenuOpen = (event) => {
+    setMoreMenuAnchor(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMoreMenuAnchor(null);
   };
 
   useEffect(() => {
@@ -180,12 +198,47 @@ const Post = ({ id, author, likes, comments, photos, content, time }) => {
     <>
       <PostBox mt={0} width={[330, 400, 400, 550]}>
         <Stack alignItems={"flex-start"} paddingInline={2} paddingBottom={2}>
-          <CardHeader
-            sx={{ paddingLeft: 0 }}
-            avatar={<Avatar alt={"alt.."} src={user.profilePicture} />}
-            title={`${user.firstName} ${user.lastName}`}
-            subheader={moment(time).fromNow()}
-          />
+          <Stack
+            direction={"row"}
+            justifyContent={"space-between"}
+            alignItems={"center"}
+            width={"100%"}
+          >
+            <CardHeader
+              sx={{ paddingLeft: 0 }}
+              avatar={<Avatar alt={"alt.."} src={user.profilePicture} />}
+              title={`${user.firstName} ${user.lastName}`}
+              subheader={moment(time).fromNow()}
+            />
+            {myUser._id === author && (
+              <>
+                <IconButton onClick={handleMenuOpen}>
+                  <MoreVert />
+                </IconButton>
+                <Menu
+                  anchorEl={moreMenuAnchor}
+                  open={Boolean(moreMenuAnchor)}
+                  onClose={handleMenuClose}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleMenuClose();
+                    }}
+                  >
+                    Edit Post
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleDeletePost(id);
+                      handleMenuClose();
+                    }}
+                  >
+                    Delete Post
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
+          </Stack>
           <Typography>{content}</Typography>
           <Box width={[305, 365, 365, 515]}>
             <img
@@ -257,7 +310,12 @@ const Post = ({ id, author, likes, comments, photos, content, time }) => {
             {/* Display existing comments */}
             {displayComments &&
               displayComments.map((comment) => (
-                <Stack spacing={1} direction={"row"} alignItems={"center"}>
+                <Stack
+                  key={comment._id}
+                  spacing={1}
+                  direction={"row"}
+                  alignItems={"center"}
+                >
                   <Avatar src={comment.author?.profilePicture}>
                     {comment.author?.firstName}
                   </Avatar>
@@ -307,6 +365,16 @@ const Post = ({ id, author, likes, comments, photos, content, time }) => {
       </Dialog>
     </>
   );
+};
+Post.propTypes = {
+  id: PropTypes.string.isRequired,
+  author: PropTypes.string.isRequired,
+  likes: PropTypes.array.isRequired,
+  comments: PropTypes.array.isRequired,
+  photos: PropTypes.array,
+  content: PropTypes.string.isRequired,
+  time: PropTypes.string.isRequired,
+  handleDeletePost: PropTypes.func,
 };
 
 export default Post;

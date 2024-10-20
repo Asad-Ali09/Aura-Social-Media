@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Post from "../Components/Post";
 import useRedirectUser from "../hooks/useRedirectUser";
+import { deletePost } from "../redux/posts/postServices";
 
 const postURL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts`;
 
@@ -12,27 +13,36 @@ const Feed = () => {
 
   const [posts, setPosts] = useState([]);
 
-  useEffect(() => {
-    const getFeed = async () => {
-      try {
-        const response = await axios.post(
-          `${postURL}/feed`,
-          {},
-          {
-            withCredentials: true,
-          }
-        );
-        if (response.status === 200) {
-          setPosts(response.data);
-          console.log(response.data);
+  const getFeed = async () => {
+    try {
+      const response = await axios.post(
+        `${postURL}/feed`,
+        {},
+        {
+          withCredentials: true,
         }
-      } catch (error) {
-        console.log(error);
-        toast.error("Error Loading Posts...");
+      );
+      if (response.status === 200) {
+        setPosts(response.data);
+        console.log(response.data);
       }
-    };
+    } catch (error) {
+      console.log(error);
+      toast.error("Error Loading Posts...");
+    }
+  };
+  useEffect(() => {
     getFeed();
   }, []);
+
+  const handleDeletePost = async (postId) => {
+    const resp = await deletePost(postId);
+    if (resp === true) {
+      getFeed();
+    } else {
+      toast.error("Error deleteing Post");
+    }
+  };
 
   return (
     <Box width={"100%"} bgcolor={"mygray.bg"}>
@@ -60,6 +70,7 @@ const Feed = () => {
               photos={post.photos}
               content={post.content}
               time={post.createdAt}
+              handleDeletePost={handleDeletePost}
             />
           );
         })}

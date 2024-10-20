@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import Post from "../Components/Post";
+import { useSelector } from "react-redux";
+import { selectUser } from "../redux/auth/authSlice";
+import { deletePost } from "../redux/posts/postServices";
 
 const postURL = `${import.meta.env.VITE_BACKEND_URL}/api/v1/posts`;
 
@@ -13,6 +16,8 @@ const SeeSinglePost = () => {
   const navigate = useNavigate();
 
   const [post, setPost] = useState(null);
+  const myUser = useSelector(selectUser);
+
   useEffect(() => {
     const getPost = async () => {
       if (!postID) return;
@@ -32,6 +37,18 @@ const SeeSinglePost = () => {
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!myUser || myUser._id !== post.author) {
+      return;
+    }
+    const resp = await deletePost(postId);
+    if (resp === true) {
+      navigate(-1);
+    } else {
+      toast.error("Error deleteing Post");
+    }
   };
 
   if (!postID) {
@@ -61,6 +78,7 @@ const SeeSinglePost = () => {
             photos={post.photos}
             content={post.content}
             time={post.createdAt}
+            handleDeletePost={handleDeletePost}
           />
         )}
       </Stack>

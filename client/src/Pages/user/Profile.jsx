@@ -41,7 +41,7 @@ const Profile = () => {
   useEffect(() => {
     dispatch(getUserData());
     dispatch(getMyPosts());
-  }, [dispatch, getMyPosts]);
+  }, [dispatch]);
 
   const [isFollowersDialogOpen, setIsFollowersDialogOpen] = useState(false);
   const [isFollowingDialogOpen, setIsFollowingDialogOpen] = useState(false);

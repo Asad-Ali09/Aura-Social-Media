@@ -29,4 +29,12 @@ const getMyPosts = createAsyncThunk("postSlice/getMyPosts", async () => {
   return response.data;
 });
 
-export { createPost, getMyPosts };
+const deletePost = async (postID) => {
+  const response = await axios.delete(`${postURL}/${postID}`, {
+    withCredentials: true,
+  });
+  if (response.status === 200) return true;
+  return false;
+};
+
+export { createPost, getMyPosts, deletePost };
