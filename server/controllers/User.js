@@ -6,6 +6,14 @@ const crypto = require("crypto");
 const sendMail = require("../utils/sendEmail");
 const jwt = require("jsonwebtoken");
 
+const cookieOptions = {
+  path: "/",
+  httpOnly: true,
+  expires: new Date(Date.now() + 1000 * 86400 * 3),
+  sameSite: "strict",
+  secure: true,
+};
+
 const signinController = async (req, res) => {
   if (req.body.googleAccessToken) {
     // gogole-auth
@@ -29,13 +37,7 @@ const signinController = async (req, res) => {
     if (!user) throw new customError(404, "User doesn't exists");
 
     const token = user.createJWT();
-    res.cookie("token", token, {
-      path: "/",
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400 * 3),
-      sameSite: "none",
-      secure: true,
-    });
+    res.cookie("token", token, cookieOptions);
 
     const userObj = user.toResponseObject();
     res.status(200).json({
@@ -56,13 +58,7 @@ const signinController = async (req, res) => {
     if (!isPasswordOk) throw new customError(400, "Invalid Credentials");
 
     const token = user.createJWT();
-    res.cookie("token", token, {
-      path: "/",
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400 * 3),
-      sameSite: "none",
-      secure: true,
-    });
+    res.cookie("token", token, cookieOptions);
 
     const userObj = user.toResponseObject();
 
@@ -106,19 +102,13 @@ const signupController = async (req, res) => {
       profilePicture,
     });
     const token = user.createJWT();
-    res.cookie("token", token, {
-      path: "/",
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400 * 3),
-      sameSite: "none",
-      secure: true,
-    });
+    res.cookie("token", token, cookieOptions);
 
     const userObj = user.toResponseObject();
 
     return res.status(201).json({
       message: "User created",
-      user: uerObj,
+      user: userObj,
     });
   }
 
@@ -141,13 +131,7 @@ const signupController = async (req, res) => {
 
   if (user) {
     const token = user.createJWT();
-    res.cookie("token", token, {
-      path: "/",
-      httpOnly: true,
-      expires: new Date(Date.now() + 1000 * 86400 * 3),
-      sameSite: "none",
-      secure: true,
-    });
+    res.cookie("token", token, cookieOptions);
 
     const userObj = user.toResponseObject();
     return res.status(201).json({
@@ -175,13 +159,7 @@ const isLoggedIn = async (req, res) => {
 };
 
 const LogoutUser = async (req, res) => {
-  res.cookie("token", "", {
-    path: "/",
-    httpOnly: true,
-    expires: new Date(0),
-    sameSite: "none",
-    secure: true,
-  });
+  res.cookie("token", "", cookieOptions);
   res.status(200).json({ message: "Logged Out Successfully" });
 };
 
